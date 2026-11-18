@@ -134,3 +134,33 @@
         (is (every? (fn [i] (< (js/Math.abs (+ (aget curve i) (aget curve (- n i)))) 1e-6))
                     (range 1 n))
             "is odd: f(-x) = -f(x)")))))
+
+(defn- reverb-peak
+  "Renders a 220 Hz sine through a reverb created with `data`, after `setup!`
+   runs on the mounted runtime. Returns the output peak."
+  [data setup!]
+  (let [offline (js/OfflineAudioContext. 1 4410 44100)
+        r (rt/create-runtime offline)]
+    (rt/mount! r {:nodes {"o" {:type "osc" :data {:frequency 220}}
+                          "rv" {:type "reverb" :data data}
+                          "out" {:type "out" :data {}}}
+                  :edges [{:source "o" :sourceHandle "audio-out" :target "rv" :targetHandle "audio-in"}
+                          {:source "rv" :sourceHandle "audio-out" :target "out" :targetHandle "audio-in"}]})
+    (setup! r)
+    (.then (.startRendering offline)
+           (fn [buf]
+             (let [ch (.getChannelData buf 0)]
+               (areduce ch i m 0 (js/Math.max m (js/Math.abs (aget ch i)))))))))
+
+(deftest reverb-normalize-applies-at-creation-and-on-change
+  (async done
+    (-> (js/Promise.all
+         #js [(reverb-peak {:normalize true} identity)
+              (reverb-peak {:normalize false} identity)
+              (reverb-peak {:normalize true}
+                           #(rt/set-param! % {:id "rv" :param :normalize :value false}))])
+        (.then (fn [[normalized raw raw-after-change]]
+                 (is (> (/ raw normalized) 5) "an unnormalized room IR is much louder")
+                 (is (> (/ raw-after-change normalized) 5) "set-param! :normalize takes effect")
+                 (done)))
+        (.catch (fn [e] (is false (str e)) (done))))))
