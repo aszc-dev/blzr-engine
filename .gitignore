@@ -1,0 +1,5 @@
+.cpcache/
+.shadow-cljs/
+.clj-kondo/.cache/
+node_modules/
+target/

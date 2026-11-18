@@ -1,0 +1,6 @@
+{:deps {:aliases [:cljs]}
+
+ :builds
+ {:test {:target    :karma
+         :output-to "target/test.js"
+         :ns-regexp "-test$"}}}
