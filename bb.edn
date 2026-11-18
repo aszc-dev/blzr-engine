@@ -1,0 +1,7 @@
+{:tasks
+ {test:jvm     {:doc  "Run the .cljc tests on the JVM (kaocha)"
+                :task (shell "clojure" "-M:test" "-m" "kaocha.runner" "jvm")}
+  test:browser {:doc  "Run the ClojureScript tests in headless Chrome (Karma)"
+                :task (shell "npm" "run" "test:browser")}
+  test         {:doc     "Run both test lanes"
+                :depends [test:jvm test:browser]}}}
