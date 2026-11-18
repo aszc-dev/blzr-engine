@@ -4,11 +4,25 @@ updates:
     directory: /
     schedule:
       interval: monthly
+
   - package-ecosystem: docker
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # The Clojure CLI version in this image is also pinned in ci.yml, and
+      # the JDK follows the LTS line; both move by hand, together.
+      - dependency-name: clojure
+      # Node majors follow the LTS line, chosen by hand.
+      - dependency-name: node
+        update-types: ["version-update:semver-major"]
+
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # Must match the thheller/shadow-cljs version in deps.edn.
+      - dependency-name: shadow-cljs
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
