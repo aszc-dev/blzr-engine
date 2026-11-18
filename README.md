@@ -90,4 +90,5 @@ docker run --rm --network none blzr-engine-test
 
 ## License
 
-[Apache License 2.0](LICENSE).
+Copyright 2026 Adrian Szczepański (aszc-dev). Licensed under the
+[Apache License 2.0](LICENSE); see [NOTICE](NOTICE).
