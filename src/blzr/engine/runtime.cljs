@@ -175,17 +175,6 @@
                                  (and (= type :osc) (= (get data :type) "glottal")) #{:type}
                                  :else #{})]
             (when node
-              (when (= type :dist)
-                (let [curve-type (get data :curve "soft")]
-                  (set! (.-curve node) (make-distortion-curve curve-type))))
-
-              (when (= type :reverb)
-                (let [ir-type (get data :ir "room")]
-                  (set! (.-buffer node) (generate-impulse-response ctx ir-type))))
-
-              (when (and (= type :osc) (= (get data :type) "glottal"))
-                (.setPeriodicWave node (make-glottal-wave ctx)))
-
               (doseq [[k v] (:params spec)
                       :when (not (contains? special-params k))]
                 (let [val (get data k (:default v))
@@ -204,6 +193,17 @@
                     (gobj/set node param-name val)
 
                     nil)))
+
+              (when (= type :dist)
+                (let [curve-type (get data :curve "soft")]
+                  (set! (.-curve node) (make-distortion-curve curve-type))))
+
+              (when (= type :reverb)
+                (let [ir-type (get data :ir "room")]
+                  (set! (.-buffer node) (generate-impulse-response ctx ir-type))))
+
+              (when (and (= type :osc) (= (get data :type) "glottal"))
+                (.setPeriodicWave node (make-glottal-wave ctx)))
 
               (when (exists? (.-start node)) (.start node))
 
@@ -233,6 +233,11 @@
 
           (and (= node-type :reverb) (= param :ir))
           (set! (.-buffer node) (generate-impulse-response ctx value))
+
+          (and (= node-type :reverb) (= param :normalize))
+          (do (set! (.-normalize node) value)
+              ;; ConvolverNode applies normalize only when buffer is assigned.
+              (set! (.-buffer node) (.-buffer node)))
 
           (processor-option? param)
           (.postMessage (.-port node) (clj->js {param value}))
